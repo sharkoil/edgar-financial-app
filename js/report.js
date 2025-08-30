@@ -49,12 +49,16 @@ class FinancialReportGenerator {
             ${this.renderFinancialSection('Balance Sheet', data.balanceSheet)}
             ${this.renderIncomeStatementTable(data.incomeStatement)}
             ${this.renderCashFlowTable(data.cashFlow)}
+            ${this.renderNewsSection(data.company.name)}
         `;
 
         // Initialize stock chart if ticker is available
         if (ticker) {
             this.initializeStockChart(ticker);
         }
+        
+        // Initialize news section
+        this.initializeNews(data.company.name);
     }
 
     renderFinancialSection(title, metrics) {
@@ -251,6 +255,43 @@ class FinancialReportGenerator {
                     </div>
                 `;
             }
+        }
+    }
+
+    renderNewsSection(companyName) {
+        return `
+            <div class="section">
+                <div id="newsContainer">
+                    <div class="news-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading latest news...</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async initializeNews(companyName) {
+        const newsContainer = document.getElementById('newsContainer');
+        
+        if (!newsContainer || !window.newsService) {
+            console.warn('News service not available');
+            return;
+        }
+
+        try {
+            // Show loading state
+            window.newsService.showLoadingState(newsContainer);
+            
+            // Fetch news articles
+            const articles = await window.newsService.searchNews(companyName, 5);
+            
+            // Display the news
+            window.newsService.displayNews(articles, newsContainer);
+            
+        } catch (error) {
+            console.error('Failed to load news:', error);
+            window.newsService.showErrorState(newsContainer, error.message);
         }
     }
 
