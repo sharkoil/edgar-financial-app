@@ -45,6 +45,7 @@ class FinancialReportGenerator {
             </div>
 
             ${ticker ? this.renderStockChartSection(ticker) : ''}
+            ${this.renderAIAnalysisSection()}
             ${this.renderFinancialSection('Key Metrics', data.keyMetrics)}
             ${this.renderFinancialSection('Balance Sheet', data.balanceSheet)}
             ${this.renderIncomeStatementTable(data.incomeStatement)}
@@ -56,6 +57,9 @@ class FinancialReportGenerator {
         if (ticker) {
             this.initializeStockChart(ticker);
         }
+        
+        // Initialize AI analysis
+        this.initializeAIAnalysis(data);
         
         // Initialize news section
         this.initializeNews(data.company.name);
@@ -255,6 +259,47 @@ class FinancialReportGenerator {
                     </div>
                 `;
             }
+        }
+    }
+
+    renderAIAnalysisSection() {
+        return `
+            <div class="financial-section">
+                <div id="aiAnalysisContainer">
+                    <div class="ai-analysis-loading">
+                        <div class="loading-spinner"></div>
+                        <h3>Generating Professional Financial Analysis...</h3>
+                        <p>Our AI financial analyst is reviewing the latest SEC filings</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async initializeAIAnalysis(companyData) {
+        const aiContainer = document.getElementById('aiAnalysisContainer');
+        
+        if (!aiContainer || !window.llmAnalyst) {
+            console.warn('AI Analyst service not available');
+            return;
+        }
+
+        try {
+            // Show loading state
+            window.llmAnalyst.showLoadingState(aiContainer);
+            
+            // Generate AI analysis
+            const analysis = await window.llmAnalyst.generateFinancialAnalysis(
+                companyData, 
+                companyData.company.name
+            );
+            
+            // Display the analysis
+            window.llmAnalyst.displayAnalysis(analysis, aiContainer);
+            
+        } catch (error) {
+            console.error('Failed to generate AI analysis:', error);
+            window.llmAnalyst.showErrorState(aiContainer, error.message);
         }
     }
 

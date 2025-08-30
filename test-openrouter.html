@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRouter API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #252525;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        button {
+            background: #10a37f;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: #0d8f68;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .response-area {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            min-height: 100px;
+        }
+        .loading {
+            color: #10a37f;
+            font-style: italic;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 OpenRouter API Test</h1>
+        
+        <div class="test-section">
+            <h2>API Configuration</h2>
+            <div class="input-group">
+                <label for="apiKey">API Key:</label>
+                <input type="password" id="apiKey" value="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" />
+            </div>
+            <div class="input-group">
+                <label for="model">Model:</label>
+                <input type="text" id="model" value="deepseek/deepseek-r1-0528:free" />
+            </div>
+            <div class="input-group">
+                <label for="prompt">Test Prompt:</label>
+                <textarea id="prompt" placeholder="Enter your test prompt here...">What is the meaning of life?</textarea>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test API Call</h2>
+            <button id="testBtn" onclick="testOpenRouterAPI()">Test API Call</button>
+            
+            <div id="responseArea" class="response-area">
+                Click "Test API Call" to test the OpenRouter API...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Request Details</h2>
+            <div id="requestDetails" class="response-area">
+                Request details will appear here...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testOpenRouterAPI() {
+            const testBtn = document.getElementById('testBtn');
+            const responseArea = document.getElementById('responseArea');
+            const requestDetails = document.getElementById('requestDetails');
+            
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const prompt = document.getElementById('prompt').value;
+
+            if (!apiKey || !model || !prompt) {
+                responseArea.innerHTML = '<span class="error">Please fill in all fields</span>';
+                return;
+            }
+
+            testBtn.disabled = true;
+            responseArea.innerHTML = '<span class="loading">Making API call...</span>';
+
+            const requestBody = {
+                "model": model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            };
+
+            const requestOptions = {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "HTTP-Referer": window.location.origin,
+                    "X-Title": "Financial Lookup App - OpenRouter Test",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            };
+
+            // Show request details
+            requestDetails.innerHTML = `URL: https://openrouter.ai/api/v1/chat/completions
+Method: POST
+Headers:
+  Authorization: Bearer ${apiKey.substring(0, 10)}...
+  Content-Type: application/json
+  HTTP-Referer: ${window.location.origin}
+  X-Title: Financial Lookup App - OpenRouter Test
+
+Body:
+${JSON.stringify(requestBody, null, 2)}`;
+
+            try {
+                console.log('Making OpenRouter API call...');
+                const startTime = Date.now();
+                
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", requestOptions);
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('API Response:', result);
+
+                // Display successful response
+                responseArea.innerHTML = `<span class="success">✅ API Call Successful!</span>
+
+<strong>Response Time:</strong> ${duration}ms
+<strong>Model:</strong> ${result.model || model}
+<strong>Usage:</strong> ${JSON.stringify(result.usage || 'Not provided', null, 2)}
+
+<strong>Generated Response:</strong>
+${result.choices?.[0]?.message?.content || 'No content returned'}
+
+<strong>Full Response Object:</strong>
+${JSON.stringify(result, null, 2)}`;
+
+            } catch (error) {
+                console.error('API Error:', error);
+                responseArea.innerHTML = `<span class="error">❌ API Call Failed</span>
+
+<strong>Error:</strong> ${error.message}
+
+<strong>Possible Issues:</strong>
+• Invalid API key
+• Model not available or incorrect name
+• Network connectivity issues
+• API rate limits exceeded
+• CORS restrictions (try from different domain)
+
+<strong>Debug Info:</strong>
+${error.stack || 'No additional debug info available'}`;
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+
+        // Test on page load with default values
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('OpenRouter API Test page loaded');
+            console.log('Ready to test API call');
+        });
+    </script>
+</body>
+</html>

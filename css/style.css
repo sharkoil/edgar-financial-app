@@ -779,6 +779,111 @@ body {
     color: #888;
 }
 
+/* AI Analysis Section Styles */
+.ai-analysis-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+    border-radius: 8px;
+    padding: 25px;
+    margin: 20px 0;
+    border: 1px solid #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.analysis-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #10a37f;
+    padding-bottom: 15px;
+}
+
+.analysis-header h2 {
+    color: #e0e0e0;
+    margin: 0 0 8px 0;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.analyst-credit {
+    color: #10a37f;
+    margin: 0;
+    font-size: 0.9em;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.analysis-content {
+    margin: 20px 0;
+}
+
+.analysis-text {
+    color: #e0e0e0;
+    line-height: 1.7;
+    font-size: 0.95em;
+}
+
+.analysis-text p {
+    margin: 0 0 16px 0;
+    text-align: justify;
+}
+
+.analysis-text p:last-child {
+    margin-bottom: 0;
+}
+
+.analysis-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+    text-align: center;
+    color: #888;
+}
+
+.ai-analysis-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+.ai-analysis-loading h3 {
+    color: #10a37f;
+    margin: 15px 0 10px 0;
+}
+
+.ai-analysis-loading .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #333;
+    border-top: 3px solid #10a37f;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+.ai-analysis-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+    background: #2a1f1f;
+    border: 1px solid #4a3333;
+    border-radius: 6px;
+}
+
+.ai-analysis-error h3 {
+    color: #ff6b6b;
+    margin: 0 0 10px 0;
+}
+
+.ai-analysis-error p {
+    color: #e0e0e0;
+    margin: 10px 0;
+}
+
+.ai-analysis-error small {
+    color: #888;
+    font-size: 0.8em;
+}
+
 .no-news .news-icon {
     font-size: 2em;
     margin-bottom: 10px;
