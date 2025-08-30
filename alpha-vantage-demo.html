@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Vantage Integration Demo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <div class="report-container">
+        <a href="index.html" class="back-button">← Back to Main App</a>
+        
+        <div class="report-header">
+            <h1 class="company-title">📈 Alpha Vantage Integration Demo</h1>
+            <p class="report-subtitle">Interactive Stock Price Charts with Real-Time Data</p>
+        </div>
+
+        <div class="financial-section">
+            <h2 class="section-title">🔧 Demo Controls</h2>
+            <div style="margin-bottom: 2rem;">
+                <label for="symbolInput" style="color: #f0f6fc; margin-right: 1rem;">Stock Symbol:</label>
+                <input type="text" id="symbolInput" placeholder="Enter ticker (e.g., AAPL, MSFT, TSLA)" 
+                       style="padding: 0.5rem; margin-right: 1rem; background: #21262d; border: 1px solid #30363d; color: #f0f6fc; border-radius: 4px;">
+                <button id="loadChart" style="padding: 0.5rem 1rem; background: #238636; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Load Chart
+                </button>
+            </div>
+        </div>
+
+        <div class="financial-section">
+            <h2 class="section-title">📈 Stock Price Chart</h2>
+            <div id="demoStockChart" class="stock-chart-container">
+                <div class="chart-loading">
+                    <p>Enter a stock symbol above and click "Load Chart" to see historical price data</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="financial-section">
+            <h2 class="section-title">ℹ️ Integration Features</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-label">🔒 Security</div>
+                    <div class="metric-value">API key management with environment variables</div>
+                    <div class="metric-date">Rate limiting and error handling</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">📊 Data Processing</div>
+                    <div class="metric-value">1 year of daily stock prices</div>
+                    <div class="metric-date">Price changes, volatility, volume</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">🎨 Interactive Charts</div>
+                    <div class="metric-value">Chart.js with dark theme</div>
+                    <div class="metric-date">Tooltips, zoom, responsive design</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">⚡ Performance</div>
+                    <div class="metric-value">Caching and proxy support</div>
+                    <div class="metric-date">CORS handling and timeouts</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="financial-section">
+            <h2 class="section-title">🚀 Usage Examples</h2>
+            <div style="color: #8b949e; line-height: 1.6;">
+                <p><strong style="color: #58a6ff;">Popular Tech Stocks:</strong> AAPL (Apple), MSFT (Microsoft), GOOGL (Alphabet), TSLA (Tesla), AMZN (Amazon)</p>
+                <p><strong style="color: #58a6ff;">Financial Stocks:</strong> JPM (JPMorgan), BAC (Bank of America), GS (Goldman Sachs), WFC (Wells Fargo)</p>
+                <p><strong style="color: #58a6ff;">Blue Chip Stocks:</strong> JNJ (Johnson & Johnson), PG (Procter & Gamble), KO (Coca-Cola), PFE (Pfizer)</p>
+                <p><strong style="color: #f85149;">Note:</strong> API has rate limits - please wait a few seconds between requests</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/alphavantage.js"></script>
+    <script src="js/stock-chart.js"></script>
+    
+    <script>
+        // Demo page JavaScript
+        document.addEventListener('DOMContentLoaded', () => {
+            const symbolInput = document.getElementById('symbolInput');
+            const loadChartBtn = document.getElementById('loadChart');
+            
+            let currentChart = null;
+
+            // Load chart function
+            async function loadChart() {
+                const symbol = symbolInput.value.trim().toUpperCase();
+                
+                if (!symbol) {
+                    alert('Please enter a stock symbol');
+                    return;
+                }
+
+                loadChartBtn.disabled = true;
+                loadChartBtn.textContent = 'Loading...';
+
+                try {
+                    // Destroy existing chart
+                    if (currentChart) {
+                        currentChart.destroy();
+                    }
+
+                    // Create new chart
+                    currentChart = new StockChart('demoStockChart', {
+                        height: 400,
+                        theme: 'dark',
+                        timeRange: 'compact'
+                    });
+
+                    await currentChart.renderChart(symbol);
+                    
+                } catch (error) {
+                    console.error('Chart loading error:', error);
+                } finally {
+                    loadChartBtn.disabled = false;
+                    loadChartBtn.textContent = 'Load Chart';
+                }
+            }
+
+            // Event listeners
+            loadChartBtn.addEventListener('click', loadChart);
+            
+            symbolInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loadChart();
+                }
+            });
+
+            // Load default chart (AAPL)
+            symbolInput.value = 'AAPL';
+            setTimeout(loadChart, 1000); // Small delay to ensure everything is loaded
+        });
+    </script>
+</body>
+</html>

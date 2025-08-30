@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEC Financial Lookup - Search Companies</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="home-container">
+        <h1 class="logo">📊 FinLookup</h1>
+        <p class="subtitle">Search financial data for any public company using SEC EDGAR database</p>
+        
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="Search by company name or ticker symbol (e.g., AAPL, Apple Inc.)"
+                autocomplete="off"
+            >
+            
+            <div id="suggestions" class="suggestions"></div>
+            
+            <button id="searchButton" class="search-button">
+                Get Financial Report
+            </button>
+        </div>
+    </div>
+
+    <script src="js/search.js"></script>
+</body>
+</html>

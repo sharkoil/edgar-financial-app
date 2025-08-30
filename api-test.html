@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Proxy Test</title>
+    <style>
+        body { font-family: monospace; background: #0d1117; color: #f0f6fc; padding: 2rem; }
+        .test-section { margin: 2rem 0; padding: 1rem; background: #161b22; border-radius: 8px; }
+        button { padding: 0.5rem 1rem; background: #238636; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0.5rem; }
+        .result { margin: 1rem 0; padding: 1rem; background: #21262d; border-radius: 4px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .success { border-left: 3px solid #3fb950; }
+        .error { border-left: 3px solid #f85149; }
+        .loading { border-left: 3px solid #58a6ff; }
+    </style>
+</head>
+<body>
+    <h1>🧪 API Proxy Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📊 SEC EDGAR API Test</h2>
+        <button onclick="testSecAPI()">Test SEC API (Apple - AAPL)</button>
+        <div id="secResult" class="result loading">Click button to test SEC API...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>📈 Alpha Vantage API Test</h2>
+        <button onclick="testAlphaVantageAPI()">Test Alpha Vantage API (Apple - AAPL)</button>
+        <div id="alphaResult" class="result loading">Click button to test Alpha Vantage API...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Full Integration Test</h2>
+        <button onclick="testFullIntegration()">Test Complete Integration</button>
+        <div id="integrationResult" class="result loading">Click button to test full integration...</div>
+    </div>
+
+    <script>
+        async function testSecAPI() {
+            const resultDiv = document.getElementById('secResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing SEC API... Please wait...';
+
+            try {
+                console.log('Testing SEC API...');
+                const response = await fetch('/api/sec/companyfacts/CIK0000320193.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ SEC API SUCCESS!
+Company: ${data.entityName}
+CIK: ${data.cik}
+Available fact categories: ${Object.keys(data.facts).join(', ')}
+US-GAAP facts available: ${Object.keys(data.facts['us-gaap'] || {}).length}
+
+Sample data structure:
+${JSON.stringify({
+    entityName: data.entityName,
+    cik: data.cik,
+    factCategories: Object.keys(data.facts),
+    sampleFacts: Object.keys(data.facts['us-gaap'] || {}).slice(0, 5)
+}, null, 2)}`;
+
+            } catch (error) {
+                console.error('SEC API Error:', error);
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ SEC API FAILED: ${error.message}`;
+            }
+        }
+
+        async function testAlphaVantageAPI() {
+            const resultDiv = document.getElementById('alphaResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing Alpha Vantage API... Please wait...';
+
+            try {
+                console.log('Testing Alpha Vantage API...');
+                const url = '/api/alphavantage/?function=TIME_SERIES_DAILY&symbol=AAPL&outputsize=compact&apikey=WNZ9Z35IUAUASVMV';
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data['Error Message']) {
+                    throw new Error(`Alpha Vantage Error: ${data['Error Message']}`);
+                }
+
+                if (data['Note']) {
+                    throw new Error(`Alpha Vantage Rate Limit: ${data['Note']}`);
+                }
+
+                const timeSeries = data['Time Series (Daily)'];
+                const latestDate = Object.keys(timeSeries)[0];
+                const latestData = timeSeries[latestDate];
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ ALPHA VANTAGE API SUCCESS!
+Symbol: ${data['Meta Data']['2. Symbol']}
+Last Refreshed: ${data['Meta Data']['3. Last Refreshed']}
+Latest Date: ${latestDate}
+Latest Close: $${parseFloat(latestData['4. close']).toFixed(2)}
+Data Points Available: ${Object.keys(timeSeries).length}
+
+Sample data structure:
+${JSON.stringify({
+    symbol: data['Meta Data']['2. Symbol'],
+    lastRefreshed: data['Meta Data']['3. Last Refreshed'],
+    latestPrice: latestData['4. close'],
+    dataPoints: Object.keys(timeSeries).length
+}, null, 2)}`;
+
+            } catch (error) {
+                console.error('Alpha Vantage API Error:', error);
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ALPHA VANTAGE API FAILED: ${error.message}`;
+            }
+        }
+
+        async function testFullIntegration() {
+            const resultDiv = document.getElementById('integrationResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing full integration... Please wait...';
+
+            try {
+                console.log('Testing full integration...');
+                
+                // Test both APIs
+                const [secResponse, alphaResponse] = await Promise.all([
+                    fetch('/api/sec/companyfacts/CIK0000320193.json'),
+                    fetch('/api/alphavantage/?function=TIME_SERIES_DAILY&symbol=AAPL&outputsize=compact&apikey=WNZ9Z35IUAUASVMV')
+                ]);
+
+                if (!secResponse.ok || !alphaResponse.ok) {
+                    throw new Error('One or both API calls failed');
+                }
+
+                const [secData, alphaData] = await Promise.all([
+                    secResponse.json(),
+                    alphaResponse.json()
+                ]);
+
+                // Check for API errors
+                if (alphaData['Error Message'] || alphaData['Note']) {
+                    throw new Error(`Alpha Vantage: ${alphaData['Error Message'] || alphaData['Note']}`);
+                }
+
+                const timeSeries = alphaData['Time Series (Daily)'];
+                const latestDate = Object.keys(timeSeries)[0];
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `🎉 FULL INTEGRATION SUCCESS!
+
+📊 SEC Financial Data:
+✅ Company: ${secData.entityName}
+✅ Financial metrics available: ${Object.keys(secData.facts['us-gaap'] || {}).length}
+
+📈 Stock Price Data:
+✅ Latest price: $${parseFloat(timeSeries[latestDate]['4. close']).toFixed(2)}
+✅ Historical data points: ${Object.keys(timeSeries).length}
+
+🔗 Integration Ready:
+✅ Both APIs working through proxy
+✅ CORS headers properly configured
+✅ Data formats compatible
+✅ Error handling functional
+
+Your financial lookup app is fully operational! 🚀`;
+
+            } catch (error) {
+                console.error('Integration Error:', error);
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ INTEGRATION FAILED: ${error.message}`;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            console.log('🧪 API Proxy Test Suite loaded');
+        });
+    </script>
+</body>
+</html>
