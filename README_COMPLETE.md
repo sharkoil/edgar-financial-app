@@ -77,6 +77,81 @@ node proxy-server.js
 └─ News Display
 ```
 
+### Sequence Diagram - Complete User Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Browser/Client
+    participant P as Proxy Server
+    participant S as SEC EDGAR API
+    participant A as Alpha Vantage API
+    participant N as Serper News API
+    participant L as OpenRouter LLM API
+
+    Note over U,L: User Search Flow
+    U->>B: Type company name (e.g., "Apple")
+    B->>P: GET /api/sec/company_tickers.json
+    P->>S: Request company directory
+    S-->>P: Return 13,000+ companies
+    P-->>B: Cached company data
+    B->>B: Filter & display suggestions
+    B-->>U: Show dropdown with matches
+
+    Note over U,L: Company Selection & Report Generation
+    U->>B: Select "Apple Inc. (AAPL)"
+    B->>B: Navigate to report.html?cik=320193&ticker=AAPL
+
+    Note over U,L: Financial Data Fetching
+    B->>P: GET /api/sec/companyfacts/CIK0000320193.json
+    P->>S: Request Apple's financial facts
+    S-->>P: Return complete financial JSON
+    P-->>B: Financial data (filtered for 2025)
+    B->>B: Process & display financial metrics
+
+    Note over U,L: Stock Chart Generation
+    B->>P: GET /api/alphavantage/daily/AAPL
+    P->>A: TIME_SERIES_DAILY for AAPL
+    A-->>P: Historical stock prices
+    P-->>B: Price data (last 100 days)
+    B->>B: Render Chart.js line chart (300px height, Y-axis ≤ 2000)
+
+    Note over U,L: News Integration
+    B->>P: GET /api/serper/news/Apple Inc
+    P->>N: Search company news
+    N-->>P: Latest 5 news articles
+    P-->>B: Formatted news data
+    B->>B: Display news with thumbnails & dates
+
+    Note over U,L: AI Financial Analysis
+    B->>P: POST /api/openrouter/chat (with 2025 financial data)
+    P->>L: Send financial JSON to DeepSeek R1 model
+    Note over L: Marcus Rothschild CFA persona analyzes data
+    L-->>P: Professional financial analysis
+    P-->>B: AI insights & recommendations
+    B->>B: Display analysis below stock chart
+
+    Note over U,L: Complete Report Display
+    B-->>U: Show comprehensive report:
+    Note over B: • Company overview & 2025 financials
+    Note over B: • Interactive stock price chart
+    Note over B: • AI-powered financial analysis
+    Note over B: • Latest company news & updates
+
+    Note over U,L: Error Handling & Retries
+    alt API Error
+        P->>B: Error response (rate limit/timeout)
+        B->>B: Show loading spinner & retry logic
+        B->>P: Retry request after delay
+    end
+
+    Note over U,L: Caching & Performance
+    Note over P: • Company data cached locally
+    Note over P: • Rate limiting respected
+    Note over B: • Progressive loading of components
+    Note over B: • Responsive UI updates
+```
+
 ### Key Components
 
 | Component | File | Purpose |
